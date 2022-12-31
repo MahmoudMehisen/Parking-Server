@@ -67,6 +67,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests().requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/user/**").permitAll()
                 .requestMatchers("/api/slot/**").permitAll()
+                .requestMatchers("/api/ParkingReservation/**").permitAll()
                 .anyRequest().authenticated();
 
         http.authenticationProvider(authenticationProvider());

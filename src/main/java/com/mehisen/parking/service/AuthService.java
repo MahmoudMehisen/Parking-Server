@@ -7,6 +7,7 @@ import com.mehisen.parking.payload.request.LoginRequest;
 import com.mehisen.parking.payload.request.SignupRequest;
 import com.mehisen.parking.payload.resposne.JwtResponse;
 import com.mehisen.parking.payload.resposne.MessageResponse;
+import com.mehisen.parking.payload.resposne.UserResponse;
 import com.mehisen.parking.repository.RoleRepository;
 import com.mehisen.parking.repository.UserRepository;
 import com.mehisen.parking.security.jwt.JwtUtils;
@@ -48,11 +49,13 @@ public class AuthService {
     PasswordEncoder encoder;
 
     @Autowired
+    UserService userService;
+
+    @Autowired
     JwtUtils jwtUtils;
 
-    public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
+    public JwtResponse authenticateUser(LoginRequest loginRequest) {
 
-        try{
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -64,78 +67,59 @@ public class AuthService {
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList());
 
-            Optional<UserEntity> userEntity = userRepository.findById(userDetails.getId());
 
-            if (userEntity.isEmpty()) {
-                return ResponseEntity.status(400).body("User Not Found");
-            }
-
-            UserEntity user = userEntity.get();
-            log.info(user.toString());
-
-            return ResponseEntity.ok(getLoginUserInfo(jwt,roles,user));
-        }catch (Exception e){
-            log.error(e.getMessage());
-            return ResponseEntity.status(400).body("Error when signin");
-        }
+            UserEntity user = userService.userInfo(userDetails.getId());
+            if(user==null) return  null;
+            return getLoginUserInfo(jwt, user);
 
     }
-
-    private JwtResponse getLoginUserInfo(String jwt, List<String> roles, UserEntity user) {
-        return new JwtResponse(jwt, user.getId(),user.getUsername(),user.getEmail(),roles,0,user.getIsVip(),user.getIsComing());
+    private JwtResponse getLoginUserInfo(String jwt, UserEntity user) {
+        List<String> roles = user.getRoles().stream()
+                .map(item -> item.getName().toString())
+                .collect(Collectors.toList());
+        return new JwtResponse(jwt, user.getId(), user.getUsername(), user.getEmail(), roles, 0, user.getIsVip(), user.getIsComing());
     }
 
-    public ResponseEntity<?> registerUser(SignupRequest signUpRequest) {
-        try{
-            if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Error: Username is already taken!"));
-            }
+    public void registerUser(SignupRequest signUpRequest) {
 
-            if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Error: Email is already in use!"));
-            }
+        // Create new user's account
+        UserEntity user = new UserEntity();
 
-            // Create new user's account
-            UserEntity user = new UserEntity();
+        user.setEmail(signUpRequest.getEmail());
+        user.setUsername(signUpRequest.getUsername());
+        user.setPassword(encoder.encode(signUpRequest.getPassword()));
 
-            user.setEmail( signUpRequest.getEmail());
-            user.setUsername( signUpRequest.getUsername());
-            user.setPassword(encoder.encode(signUpRequest.getPassword()));
+        Set<String> strRoles = signUpRequest.getRole();
+        Set<RoleEntity> roles = new HashSet<>();
 
-            Set<String> strRoles = signUpRequest.getRole();
-            Set<RoleEntity> roles = new HashSet<>();
+        if (strRoles == null) {
+            RoleEntity userRole = roleRepository.findByName(ERole.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
 
-            if (strRoles == null) {
-                RoleEntity userRole = roleRepository.findByName(ERole.ROLE_USER)
-                        .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                roles.add(userRole);
-
-            } else {
-                strRoles.forEach(role -> {
-                    if ("admin".equals(role)) {
-                        RoleEntity adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-                    } else {
-                        RoleEntity userRole = roleRepository.findByName(ERole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                    }
-                });
-            }
-
-            user.setRoles(roles);
-            userRepository.save(user);
-
-            return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-        }catch (Exception e){
-            log.error(e.getMessage());
-            return ResponseEntity.status(400).body("Error when signup");
+        } else {
+            strRoles.forEach(role -> {
+                if ("admin".equals(role)) {
+                    RoleEntity adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                    roles.add(adminRole);
+                } else {
+                    RoleEntity userRole = roleRepository.findByName(ERole.ROLE_USER)
+                            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                    roles.add(userRole);
+                }
+            });
         }
 
+        user.setRoles(roles);
+        userRepository.save(user);
+    }
+
+    public boolean checkUsernameExist(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    public boolean checkEmailExist(String email) {
+        return userRepository.existsByEmail(email);
     }
 }

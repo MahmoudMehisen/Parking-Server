@@ -8,10 +8,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRequest {
+public class ParkingReservationRequest {
     @NotBlank
-    private Long id;
-    private String username;
-    private String password;
-    private String email;
+    private Long userId;
+    @NotBlank
+    private Long slotId;
 }

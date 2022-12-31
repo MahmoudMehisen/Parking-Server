@@ -26,17 +26,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final SlotRepository slotRepository;
 
-    public ResponseEntity<?> createNewUser(UserRequest userRequest) {
-        try {
-            UserEntity userEntity = new UserEntity();
-            BeanUtils.copyProperties(userRequest, userEntity);
-            UserEntity saved = userRepository.save(userEntity);
-            return ResponseEntity.ok(getUerFromEntity(saved));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(400).body("Error when creating new user");
-        }
-    }
 
     public ResponseEntity<?> allUsers() {
         try {
@@ -119,22 +108,8 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> userInfo(Long id) {
-        try {
-            Optional<UserEntity> userEntity = userRepository.findById(id);
-
-            if (userEntity.isEmpty()) {
-                return ResponseEntity.status(400).body("User Not Found");
-            }
-
-            UserEntity user = userEntity.get();
-
-            return ResponseEntity.ok(getUerFromEntity(user));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(400).body("Error when fetching userInfo");
-        }
-
+    public UserEntity userInfo(Long id) {
+        return userRepository.findById(id).get();
     }
 
     public ResponseEntity<?> removeUser(Long id) {
@@ -150,7 +125,7 @@ public class UserService {
 
     private UserResponse getUerFromEntity(UserEntity userEntity) {
         List<String> roles = userEntity.getRoles().stream().map(roleEntity -> roleEntity.getName().toString()).toList();
-        UserResponse userResponse = new UserResponse(userEntity.getId(), userEntity.getUsername(), userEntity.getEmail(), 0, userEntity.getIsVip(), userEntity.getIsComing(),roles);
+        UserResponse userResponse = new UserResponse(userEntity.getId(), userEntity.getUsername(), userEntity.getEmail(), 0, userEntity.getIsVip(), userEntity.getIsComing(), roles);
         if (userEntity.getSlot() != null) {
             userResponse.setSlotId(userEntity.getSlot().getId());
         }

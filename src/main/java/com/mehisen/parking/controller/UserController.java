@@ -2,6 +2,7 @@ package com.mehisen.parking.controller;
 
 import com.mehisen.parking.payload.request.UserRequest;
 import com.mehisen.parking.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,13 +37,13 @@ public class UserController {
 
     @PostMapping("/addVipUser")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> addVipUser(@RequestBody UserRequest userRequest){
+    public ResponseEntity<?> addVipUser(@Valid @RequestBody UserRequest userRequest){
         return userService.addVipUser(userRequest);
     }
 
     @PostMapping("/removeVipUser")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> removeVipUser(@RequestBody UserRequest userRequest){
+    public ResponseEntity<?> removeVipUser(@Valid @RequestBody UserRequest userRequest){
         return userService.removeVipUser(userRequest);
     }
 }
