@@ -19,8 +19,7 @@ import java.util.List;
 @Slf4j
 public class SlotController {
 
-    @Autowired
-    private SlotService slotService;
+    final private SlotService slotService;
 
     @PostMapping("/createNewSlot")
     @PreAuthorize("hasRole('ADMIN')")

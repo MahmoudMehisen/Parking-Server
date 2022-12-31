@@ -36,43 +36,39 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthService {
-    @Autowired
-    AuthenticationManager authenticationManager;
 
-    @Autowired
-    UserRepository userRepository;
+    final private AuthenticationManager authenticationManager;
 
-    @Autowired
-    RoleRepository roleRepository;
+    final private UserRepository userRepository;
 
-    @Autowired
-    PasswordEncoder encoder;
+    final private RoleRepository roleRepository;
 
-    @Autowired
-    UserService userService;
+    final private PasswordEncoder encoder;
 
-    @Autowired
-    JwtUtils jwtUtils;
+    final private UserService userService;
+
+    final private JwtUtils jwtUtils;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
 
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateJwtToken(authentication);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateJwtToken(authentication);
 
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(item -> item.getAuthority())
-                    .collect(Collectors.toList());
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .collect(Collectors.toList());
 
 
-            UserEntity user = userService.userInfo(userDetails.getId());
-            if(user==null) return  null;
-            return getLoginUserInfo(jwt, user);
+        UserEntity user = userService.userInfo(userDetails.getId());
+        if (user == null) return null;
+        return getLoginUserInfo(jwt, user);
 
     }
+
     private JwtResponse getLoginUserInfo(String jwt, UserEntity user) {
         List<String> roles = user.getRoles().stream()
                 .map(item -> item.getName().toString())
