@@ -3,8 +3,8 @@ package com.mehisen.parking.service;
 
 import com.mehisen.parking.entity.SlotEntity;
 import com.mehisen.parking.entity.UserEntity;
-import com.mehisen.parking.model.request.UserRequest;
-import com.mehisen.parking.model.resposne.UserResponse;
+import com.mehisen.parking.payload.request.UserRequest;
+import com.mehisen.parking.payload.resposne.UserResponse;
 import com.mehisen.parking.repository.SlotRepository;
 import com.mehisen.parking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -112,6 +112,33 @@ public class UserService {
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error when remove user from vip");
         }
+    }
+
+    public ResponseEntity<?> userInfo(UserRequest userRequest) {
+        try {
+            Optional<UserEntity> userEntity = userRepository.findById(userRequest.getId());
+
+            if (userEntity.isEmpty()) {
+                return ResponseEntity.status(400).body("User Not Found");
+            }
+
+            UserEntity user = userEntity.get();
+
+            return ResponseEntity.ok(getUerFromEntity(user));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Error when fetching userInfo");
+        }
+
+    }
+
+    public ResponseEntity<?> removeUser(Long id) {
+        try {
+            userRepository.deleteById(id);
+            return ResponseEntity.ok("User deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Error when fetching all users");
+        }
+
     }
 
     private UserResponse getUerFromEntity(UserEntity userEntity) {

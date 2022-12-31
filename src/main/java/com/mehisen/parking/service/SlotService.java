@@ -1,12 +1,10 @@
 package com.mehisen.parking.service;
 
 import com.mehisen.parking.entity.SlotEntity;
-import com.mehisen.parking.entity.UserEntity;
-import com.mehisen.parking.model.resposne.SlotResponse;
+import com.mehisen.parking.payload.resposne.SlotResponse;
 import com.mehisen.parking.repository.SlotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.mehisen.parking.model.request;
+package com.mehisen.parking.payload.resposne;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRequest {
+public class SlotResponse {
     private Long id;
-    private String username;
-    private String password;
-    private String email;
+    private Long userId;
 }
