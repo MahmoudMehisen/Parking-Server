@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -32,6 +33,7 @@ public class UserService {
             UserEntity saved = userRepository.save(userEntity);
             return ResponseEntity.ok(getUerFromEntity(saved));
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when creating new user");
         }
     }
@@ -42,6 +44,7 @@ public class UserService {
             List<UserResponse> result = allUsers.stream().map(this::getUerFromEntity).toList();
             return ResponseEntity.ok(result);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when fetching all users");
         }
     }
@@ -76,6 +79,7 @@ public class UserService {
 
             return ResponseEntity.ok(getUerFromEntity(updatedUser));
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when adding user to vip");
         }
     }
@@ -110,13 +114,14 @@ public class UserService {
 
             return ResponseEntity.ok(getUerFromEntity(updatedUser));
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when remove user from vip");
         }
     }
 
-    public ResponseEntity<?> userInfo(UserRequest userRequest) {
+    public ResponseEntity<?> userInfo(Long id) {
         try {
-            Optional<UserEntity> userEntity = userRepository.findById(userRequest.getId());
+            Optional<UserEntity> userEntity = userRepository.findById(id);
 
             if (userEntity.isEmpty()) {
                 return ResponseEntity.status(400).body("User Not Found");
@@ -126,6 +131,7 @@ public class UserService {
 
             return ResponseEntity.ok(getUerFromEntity(user));
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when fetching userInfo");
         }
 
@@ -136,13 +142,15 @@ public class UserService {
             userRepository.deleteById(id);
             return ResponseEntity.ok("User deleted successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(400).body("Error when fetching all users");
+            log.error(e.getMessage());
+            return ResponseEntity.status(400).body("Error when remove user");
         }
 
     }
 
     private UserResponse getUerFromEntity(UserEntity userEntity) {
-        UserResponse userResponse = new UserResponse(userEntity.getId(), userEntity.getUsername(), userEntity.getEmail(), 0, userEntity.getIsVip(), userEntity.getIsComing());
+        List<String> roles = userEntity.getRoles().stream().map(roleEntity -> roleEntity.getName().toString()).toList();
+        UserResponse userResponse = new UserResponse(userEntity.getId(), userEntity.getUsername(), userEntity.getEmail(), 0, userEntity.getIsVip(), userEntity.getIsComing(),roles);
         if (userEntity.getSlot() != null) {
             userResponse.setSlotId(userEntity.getSlot().getId());
         }

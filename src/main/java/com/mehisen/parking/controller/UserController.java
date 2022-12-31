@@ -15,10 +15,10 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/userInfo")
+    @GetMapping("/userInfo/{id}")
     @PreAuthorize("hasRole('USER') OR hasRole('ADMIN')")
-    public ResponseEntity<?> userInfo(@RequestBody UserRequest userRequest){
-        return userService.userInfo(userRequest);
+    public ResponseEntity<?> userInfo(@PathVariable Long id){
+        return userService.userInfo(id);
     }
 
     @GetMapping("/allUsers")
@@ -32,7 +32,6 @@ public class UserController {
     public ResponseEntity<?> removeUser(@PathVariable Long id){
         return userService.removeUser(id);
     }
-
 
 
     @PostMapping("/addVipUser")

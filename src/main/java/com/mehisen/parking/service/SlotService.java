@@ -34,6 +34,7 @@ public class SlotService {
             List<SlotResponse> result = allSlots.stream().map(this::slotFromEntity).toList();
             return ResponseEntity.ok(result);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when fetch all slots");
         }
     }

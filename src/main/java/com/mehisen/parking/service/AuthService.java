@@ -75,6 +75,7 @@ public class AuthService {
 
             return ResponseEntity.ok(getLoginUserInfo(jwt,roles,user));
         }catch (Exception e){
+            log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when signin");
         }
 
@@ -132,6 +133,7 @@ public class AuthService {
 
             return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
         }catch (Exception e){
+            log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when signup");
         }
 
