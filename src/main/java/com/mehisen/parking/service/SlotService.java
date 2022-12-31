@@ -39,6 +39,10 @@ public class SlotService {
         }
     }
 
+    public SlotEntity findFirstByUserId(Long id){
+        return slotRepository.findFirstByUserId(id).get();
+    }
+
 
     private SlotResponse slotFromEntity(SlotEntity slotEntity) {
         SlotResponse slotResponse = new SlotResponse(slotEntity.getId(), 0L);
