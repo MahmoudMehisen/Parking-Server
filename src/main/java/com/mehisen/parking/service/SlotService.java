@@ -17,38 +17,16 @@ public class SlotService {
 
     private final SlotRepository slotRepository;
 
-    public ResponseEntity<?> createNewSlot() {
-        try {
-            SlotEntity slotEntity = slotRepository.save(new SlotEntity());
-
-            return ResponseEntity.ok(slotFromEntity(slotEntity));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(400).body("Error when creating new slot");
-        }
+    public SlotEntity createNewSlot() {
+        return slotRepository.save(new SlotEntity());
     }
 
-    public ResponseEntity<?> allSlots() {
-        try {
-            List<SlotEntity> allSlots = slotRepository.findAll();
-            List<SlotResponse> result = allSlots.stream().map(this::slotFromEntity).toList();
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(400).body("Error when fetch all slots");
-        }
+    public List<SlotEntity> allSlots() {
+       return slotRepository.findAll();
     }
 
     public SlotEntity findFirstByUserId(Long id){
         return slotRepository.findFirstByUserId(id).get();
     }
 
-
-    private SlotResponse slotFromEntity(SlotEntity slotEntity) {
-        SlotResponse slotResponse = new SlotResponse(slotEntity.getId(), 0L);
-        if (slotEntity.getUser() != null) {
-            slotResponse.setUserId(slotEntity.getUser().getId());
-        }
-        return slotResponse;
-    }
 }
