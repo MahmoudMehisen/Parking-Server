@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -134,6 +135,7 @@ public class AuthService {
         return userRepository.existsByEmail(email);
     }
 
+    @Async
     public void sendForgetEmail(UserEntity userEntity)
     {
 
@@ -153,6 +155,7 @@ public class AuthService {
 
             // Sending the mail
             javaMailSender.send(message);
+            log.info("Email send to {}",userEntity.getEmail());
         }
 
         // Catch block to handle the exceptions
