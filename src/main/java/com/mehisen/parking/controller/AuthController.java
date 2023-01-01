@@ -1,5 +1,6 @@
 package com.mehisen.parking.controller;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 import com.mehisen.parking.entity.ERole;
 import com.mehisen.parking.entity.RoleEntity;
 import com.mehisen.parking.entity.UserEntity;
+import com.mehisen.parking.payload.request.ForgetRequest;
 import com.mehisen.parking.payload.request.LoginRequest;
 import com.mehisen.parking.payload.request.SignupRequest;
 import com.mehisen.parking.payload.resposne.JwtResponse;
@@ -20,6 +22,7 @@ import com.mehisen.parking.security.jwt.JwtUtils;
 import com.mehisen.parking.security.service.UserDetailsImpl;
 import com.mehisen.parking.service.AuthService;
 import com.mehisen.parking.service.UserService;
+import com.mehisen.parking.utilities.Helper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -86,6 +89,24 @@ public class AuthController {
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when signup");
+        }
+    }
+
+    @PostMapping("/forgetPassword")
+    public ResponseEntity<?> forgetPassword(@Valid @RequestBody ForgetRequest forgetRequest) {
+        try {
+            UserEntity userEntity = userService.userByEmail(forgetRequest.getEmail());
+            if (userEntity == null) {
+                ResponseEntity.status(400).body("Error email not found");
+            }
+
+            userEntity = userService.addForgetToken(userEntity);
+            authService.sendForgetEmail(userEntity);
+
+            return ResponseEntity.ok(new MessageResponse("Forget email send successfully"));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(400).body("Error when forget password");
         }
     }
 

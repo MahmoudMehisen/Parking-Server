@@ -3,6 +3,7 @@ package com.mehisen.parking.service;
 import com.mehisen.parking.entity.ERole;
 import com.mehisen.parking.entity.RoleEntity;
 import com.mehisen.parking.entity.UserEntity;
+import com.mehisen.parking.payload.EmailDetails;
 import com.mehisen.parking.payload.request.LoginRequest;
 import com.mehisen.parking.payload.request.SignupRequest;
 import com.mehisen.parking.payload.resposne.JwtResponse;
@@ -12,11 +13,17 @@ import com.mehisen.parking.repository.RoleRepository;
 import com.mehisen.parking.repository.UserRepository;
 import com.mehisen.parking.security.jwt.JwtUtils;
 import com.mehisen.parking.security.service.UserDetailsImpl;
+import com.mehisen.parking.utilities.Helper;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -48,6 +55,9 @@ public class AuthService {
     final private UserService userService;
 
     final private JwtUtils jwtUtils;
+    final private JavaMailSender javaMailSender;
+
+    @Value("${spring.mail.username}") private String sender;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
 
@@ -117,5 +127,33 @@ public class AuthService {
 
     public boolean checkEmailExist(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    public String sendForgetEmail(UserEntity userEntity)
+    {
+
+        // Try block to check for exceptions
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message);
+            // Creating a simple mail message
+
+
+            // Setting up necessary details
+            helper.setFrom(sender);
+            helper.setTo(userEntity.getEmail());
+            helper.setText(Helper.getEmailBody(userEntity.getForgetToken()),true);
+            helper.setSubject("Here's the code to reset your password");
+
+
+            // Sending the mail
+            javaMailSender.send(message);
+            return "Mail Sent Successfully...";
+        }
+
+        // Catch block to handle the exceptions
+        catch (Exception e) {
+            return "Error while Sending Mail";
+        }
     }
 }

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,4 +54,8 @@ public class UserEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
 
     private Set<RoleEntity> roles = new HashSet<>();
+
+    private String forgetToken;
+    @Column(columnDefinition = "TIMESTAMP")
+    private LocalDateTime tokenCreationDate;
 }

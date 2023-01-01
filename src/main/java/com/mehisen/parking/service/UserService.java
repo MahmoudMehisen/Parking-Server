@@ -7,6 +7,7 @@ import com.mehisen.parking.payload.request.UserRequest;
 import com.mehisen.parking.payload.resposne.UserResponse;
 import com.mehisen.parking.repository.SlotRepository;
 import com.mehisen.parking.repository.UserRepository;
+import com.mehisen.parking.utilities.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,12 +28,19 @@ public class UserService {
     private final UserRepository userRepository;
 
     public UserEntity userInfo(Long id) {
-        Optional<UserEntity> userEntity = userRepository.findById(id);
-        return userEntity.isPresent() ? userEntity.get() : null;
+        return getUserValue(userRepository.findById(id));
     }
 
     public List<UserEntity> allUsers() {
         return userRepository.findAll();
+    }
+
+    public UserEntity addForgetToken(UserEntity userEntity){
+        String token = Helper.getRandomNumberString();
+        userEntity.setForgetToken(token);
+        userEntity.setTokenCreationDate(LocalDateTime.now());
+        userRepository.save(userEntity);
+        return userEntity;
     }
 
     public void removeUser(Long id) {
@@ -54,7 +63,9 @@ public class UserService {
 
         return userEntity;
     }
-
+    public UserEntity userByEmail(String email) {
+        return getUserValue(userRepository.findByEmail(email));
+    }
 
     private UserResponse getUerFromEntity(UserEntity userEntity) {
         List<String> roles = userEntity.getRoles().stream().map(roleEntity -> roleEntity.getName().toString()).toList();
@@ -65,5 +76,8 @@ public class UserService {
         return userResponse;
     }
 
+    private UserEntity getUserValue(Optional<UserEntity> userEntity){
+        return userEntity.isPresent() ? userEntity.get() : null;
+    }
 
 }
