@@ -85,7 +85,7 @@ public class UserController {
             if (slotEntity == null) {
                 return ResponseEntity.status(400).body("No Available Slot");
             }
-
+            slotService.addVipUser(slotEntity,userEntity);
             UserEntity updatedUser = userService.addVipUser(userEntity, slotEntity);
 
             return ResponseEntity.ok(getUerFromEntity(updatedUser));
@@ -114,6 +114,7 @@ public class UserController {
                 return ResponseEntity.status(400).body("No Available Slot");
             }
 
+            slotService.removeVipUser(slotEntity);
             UserEntity updatedUser = userService.removeVipUser(userEntity, slotEntity);
 
             return ResponseEntity.ok(getUerFromEntity(updatedUser));

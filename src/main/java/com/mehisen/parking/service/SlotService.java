@@ -1,6 +1,7 @@
 package com.mehisen.parking.service;
 
 import com.mehisen.parking.entity.SlotEntity;
+import com.mehisen.parking.entity.UserEntity;
 import com.mehisen.parking.payload.resposne.SlotResponse;
 import com.mehisen.parking.repository.SlotRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,16 @@ public class SlotService {
 
     public SlotEntity findById(Long id) {
         return slotRepository.findById(id).get();
+    }
+
+    public void addVipUser(SlotEntity slotEntity, UserEntity userEntity) {
+        slotEntity.setUser(userEntity);
+        slotRepository.save(slotEntity);
+    }
+
+    public void removeVipUser(SlotEntity slotEntity) {
+        slotEntity.setUser(null);
+        slotRepository.save(slotEntity);
     }
 
     public SlotEntity createNewSlot() {

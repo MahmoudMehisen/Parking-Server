@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
-    private final SlotRepository slotRepository;
-
 
     public UserEntity userInfo(Long id) {
         return userRepository.findById(id).get();
@@ -40,24 +38,17 @@ public class UserService {
     }
 
     public UserEntity addVipUser(UserEntity userEntity, SlotEntity slotEntity) {
-        slotEntity.setUser(userEntity);
-
         userEntity.setIsVip(true);
         userEntity.setSlot(slotEntity);
 
-        slotRepository.save(slotEntity);
         userRepository.save(userEntity);
-
         return userEntity;
     }
 
     public UserEntity removeVipUser(UserEntity userEntity,SlotEntity slotEntity) {
-        slotEntity.setUser(null);
-
         userEntity.setIsVip(false);
         userEntity.setSlot(null);
 
-        slotRepository.save(slotEntity);
         userRepository.save(userEntity);
 
         return userEntity;
