@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ParkingReservationRequest {
+public class ReservationRequest {
     @NotBlank
     private Long userId;
     @NotBlank

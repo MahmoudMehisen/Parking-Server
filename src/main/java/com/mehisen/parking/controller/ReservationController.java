@@ -1,11 +1,11 @@
 package com.mehisen.parking.controller;
 
-import com.mehisen.parking.entity.ParkingReservationEntity;
+import com.mehisen.parking.entity.ReservationEntity;
 import com.mehisen.parking.entity.SlotEntity;
 import com.mehisen.parking.entity.UserEntity;
-import com.mehisen.parking.payload.request.ParkingReservationRequest;
-import com.mehisen.parking.service.ParkingHistoryService;
-import com.mehisen.parking.service.ParkingReservationService;
+import com.mehisen.parking.payload.request.ReservationRequest;
+import com.mehisen.parking.service.HistoryService;
+import com.mehisen.parking.service.ReservationService;
 import com.mehisen.parking.service.SlotService;
 import com.mehisen.parking.service.UserService;
 import jakarta.validation.Valid;
@@ -15,48 +15,51 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api/ParkingReservation")
 @Slf4j
-public class ParkingReservationController {
+public class ReservationController {
 
-    final private ParkingReservationService parkingReservationService;
+    final private ReservationService reservationService;
 
     final private SlotService slotService;
 
     final private UserService userService;
 
-    final private ParkingHistoryService parkingHistoryService;
+    final private HistoryService historyService;
 
     @PostMapping("/checkin")
-    public ResponseEntity<?> checkin(@Valid @RequestBody ParkingReservationRequest parkingReservationRequest) {
+    public ResponseEntity<?> checkin(@Valid @RequestBody ReservationRequest reservationRequest) {
         try {
-            UserEntity userEntity = userService.userInfo(parkingReservationRequest.getUserId());
+            UserEntity userEntity = userService.userInfo(reservationRequest.getUserId());
 
             if (userEntity == null) {
                 return ResponseEntity.status(400).body("Error user not found");
             }
 
-            SlotEntity slotEntity = slotService.findById(parkingReservationRequest.getSlotId());
+            SlotEntity slotEntity = slotService.findById(reservationRequest.getSlotId());
 
             if (slotEntity == null) {
                 return ResponseEntity.status(400).body("Error slot not found");
             }
 
-            ParkingReservationEntity parkingReservationEntity = parkingReservationService.checkIfFoundAnyReservationForUserOrSlot(userEntity, slotEntity);
-            if (parkingReservationEntity != null) {
-                if (Objects.equals(parkingReservationEntity.getUser().getId(), userEntity.getId()))
+            if(slotEntity.getUser() != null){
+                return ResponseEntity.status(400).body("Error slot for vip user only");
+            }
+
+            ReservationEntity reservationEntity = reservationService.checkIfFoundAnyReservationForUserOrSlot(userEntity, slotEntity);
+            if (reservationEntity != null) {
+                if (Objects.equals(reservationEntity.getUser().getId(), userEntity.getId()))
                     return ResponseEntity.status(400).body("Error user already checked-in");
                 else
                     return ResponseEntity.status(400).body("Error slot already checked-in");
             }
 
-            ParkingReservationEntity newParkingReservationEntity = parkingReservationService.checkin(userEntity, slotEntity);
-            return ResponseEntity.ok(newParkingReservationEntity);
+            ReservationEntity newReservationEntity = reservationService.checkin(userEntity, slotEntity);
+            return ResponseEntity.ok(newReservationEntity);
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when checkin");
@@ -64,28 +67,28 @@ public class ParkingReservationController {
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<?> checkout(@Valid @RequestBody ParkingReservationRequest parkingReservationRequest) {
+    public ResponseEntity<?> checkout(@Valid @RequestBody ReservationRequest reservationRequest) {
         try {
-            UserEntity userEntity = userService.userInfo(parkingReservationRequest.getUserId());
+            UserEntity userEntity = userService.userInfo(reservationRequest.getUserId());
 
             if (userEntity == null) {
                 return ResponseEntity.status(400).body("Error user not found");
             }
 
-            SlotEntity slotEntity = slotService.findById(parkingReservationRequest.getSlotId());
+            SlotEntity slotEntity = slotService.findById(reservationRequest.getSlotId());
 
             if (slotEntity == null) {
                 return ResponseEntity.status(400).body("Error slot not found");
             }
 
-            ParkingReservationEntity parkingReservationEntity = parkingReservationService.checkIfFoundAnyReservationForUserAndSlot(userEntity, slotEntity);
+            ReservationEntity reservationEntity = reservationService.checkIfFoundAnyReservationForUserAndSlot(userEntity, slotEntity);
 
-            if (parkingReservationEntity == null) {
+            if (reservationEntity == null) {
                 return ResponseEntity.status(400).body("Error no reservation found");
             }
 
-            parkingHistoryService.addParkingHistory(parkingReservationEntity);
-            parkingReservationService.checkout(parkingReservationEntity);
+            historyService.addParkingHistory(reservationEntity);
+            reservationService.checkout(reservationEntity);
 
             return ResponseEntity.ok("Checkout successfully");
         } catch (Exception e) {
@@ -103,9 +106,9 @@ public class ParkingReservationController {
                 return ResponseEntity.status(400).body("Error user not found");
             }
 
-            ParkingReservationEntity parkingReservationEntity = parkingReservationService.checkIfFoundReservationByUser(userEntity);
+            ReservationEntity reservationEntity = reservationService.checkIfFoundReservationByUser(userEntity);
 
-            return ResponseEntity.ok(parkingReservationEntity);
+            return ResponseEntity.ok(reservationEntity);
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when check is user has slot");
