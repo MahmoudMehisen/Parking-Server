@@ -17,15 +17,19 @@ public class SlotService {
 
     private final SlotRepository slotRepository;
 
+    public SlotEntity findById(Long id) {
+        return slotRepository.findById(id).get();
+    }
+
     public SlotEntity createNewSlot() {
         return slotRepository.save(new SlotEntity());
     }
 
     public List<SlotEntity> allSlots() {
-       return slotRepository.findAll();
+        return slotRepository.findAll();
     }
 
-    public SlotEntity findFirstByUserId(Long id){
+    public SlotEntity findFirstByUserId(Long id) {
         return slotRepository.findFirstByUserId(id).get();
     }
 

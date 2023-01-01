@@ -1,15 +1,17 @@
 package com.mehisen.parking.service;
 
+import com.mehisen.parking.entity.ParkingHistoryEntity;
 import com.mehisen.parking.entity.ParkingReservationEntity;
-import com.mehisen.parking.payload.request.ParkingReservationRequest;
+import com.mehisen.parking.entity.SlotEntity;
+import com.mehisen.parking.entity.UserEntity;
+import com.mehisen.parking.repository.ParkingHistoryRepository;
 import com.mehisen.parking.repository.ParkingReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -17,25 +19,32 @@ import java.util.Optional;
 public class ParkingReservationService {
     final private ParkingReservationRepository parkingReservationRepository;
 
-    public ResponseEntity<?> checkin(ParkingReservationRequest parkingReservationRequest){
-        try {
-            Optional<ParkingReservationEntity> parkingReservation = parkingReservationRepository.findByUserId(parkingReservationRequest.getUserId());
-            if(parkingReservation.isPresent()){
-                return ResponseEntity.status(400).body("Error user already checkin");
-            }
-
-             parkingReservation = parkingReservationRepository.findBySlotId(parkingReservationRequest.getSlotId());
-            if(parkingReservation.isPresent()){
-                return ResponseEntity.status(400).body("Error slot already checked-in");
-            }
-
-
-
-            // parkingReservationRepository.save(new ParkingReservationEntity(parkingReservationRequest.getUserId(), parkingReservationRequest.getSlotId(),new Date()));
-            return ResponseEntity.status(400).body("Error when checkin");
-        }catch (Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(400).body("Error when checkin");
-        }
+    public ParkingReservationEntity checkin(UserEntity userEntity, SlotEntity slotEntity) {
+        ParkingReservationEntity parkingReservationEntity = new ParkingReservationEntity();
+        parkingReservationEntity.setSlot(slotEntity);
+        parkingReservationEntity.setUser(userEntity);
+        parkingReservationEntity.setCreationDateTime(new Date());
+        return parkingReservationRepository.save(parkingReservationEntity);
     }
+
+    public void checkout(ParkingReservationEntity parkingReservationEntity) {
+        parkingReservationRepository.delete(parkingReservationEntity);
+    }
+
+
+    public ParkingReservationEntity checkIfFoundAnyReservationForUserOrSlot(UserEntity userEntity, SlotEntity slotEntity){
+        return parkingReservationRepository.findFirstByUserOrSlot(userEntity,slotEntity).get();
+    }
+    public ParkingReservationEntity checkIfFoundAnyReservationForUserAndSlot(UserEntity userEntity, SlotEntity slotEntity){
+        return parkingReservationRepository.findFirstByUserAndSlot(userEntity,slotEntity).get();
+    }
+
+
+
+
+    public ParkingReservationEntity checkIfFoundReservationByUser(UserEntity userEntity){
+        return parkingReservationRepository.findFirstByUser(userEntity).get();
+    }
+
+
 }
