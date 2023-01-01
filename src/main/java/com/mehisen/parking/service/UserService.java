@@ -26,7 +26,8 @@ public class UserService {
     private final UserRepository userRepository;
 
     public UserEntity userInfo(Long id) {
-        return userRepository.findById(id).get();
+        Optional<UserEntity> userEntity = userRepository.findById(id);
+        return userEntity.isPresent() ? userEntity.get() : null;
     }
 
     public List<UserEntity> allUsers() {
@@ -45,7 +46,7 @@ public class UserService {
         return userEntity;
     }
 
-    public UserEntity removeVipUser(UserEntity userEntity,SlotEntity slotEntity) {
+    public UserEntity removeVipUser(UserEntity userEntity, SlotEntity slotEntity) {
         userEntity.setIsVip(false);
         userEntity.setSlot(null);
 

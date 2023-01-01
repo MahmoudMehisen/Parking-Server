@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -25,24 +27,29 @@ public class ReservationService {
         return reservationRepository.save(reservationEntity);
     }
 
-    public void checkout(ReservationEntity reservationEntity) {
-        reservationRepository.delete(reservationEntity);
+    public void checkout(Long id) {
+        reservationRepository.deleteById(id);
     }
 
 
-    public ReservationEntity checkIfFoundAnyReservationForUserOrSlot(UserEntity userEntity, SlotEntity slotEntity){
-        return reservationRepository.findFirstByUserOrSlot(userEntity,slotEntity).get();
-    }
-    public ReservationEntity checkIfFoundAnyReservationForUserAndSlot(UserEntity userEntity, SlotEntity slotEntity){
-        return reservationRepository.findFirstByUserAndSlot(userEntity,slotEntity).get();
+    public ReservationEntity checkIfFoundAnyReservationForUserOrSlot(UserEntity userEntity, SlotEntity slotEntity) {
+        return getReservationEntityValue(reservationRepository.findFirstByUserOrSlot(userEntity, slotEntity));
     }
 
+    public ReservationEntity checkIfFoundReservationByUser(UserEntity userEntity) {
+        return getReservationEntityValue(reservationRepository.findFirstByUser(userEntity));
+    }
 
-
-
-    public ReservationEntity checkIfFoundReservationByUser(UserEntity userEntity){
-        return reservationRepository.findFirstByUser(userEntity).get();
+    public List<ReservationEntity> getCurrentReservation() {
+        return reservationRepository.findAll();
     }
 
 
+    public ReservationEntity findById(Long id) {
+        return getReservationEntityValue(reservationRepository.findById(id));
+    }
+
+    private ReservationEntity getReservationEntityValue(Optional<ReservationEntity> reservationEntity) {
+        return reservationEntity.isPresent() ? reservationEntity.get() : null;
+    }
 }

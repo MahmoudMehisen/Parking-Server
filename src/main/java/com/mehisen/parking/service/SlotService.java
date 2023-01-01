@@ -2,14 +2,13 @@ package com.mehisen.parking.service;
 
 import com.mehisen.parking.entity.SlotEntity;
 import com.mehisen.parking.entity.UserEntity;
-import com.mehisen.parking.payload.resposne.SlotResponse;
 import com.mehisen.parking.repository.SlotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -19,7 +18,8 @@ public class SlotService {
     private final SlotRepository slotRepository;
 
     public SlotEntity findById(Long id) {
-        return slotRepository.findById(id).get();
+        Optional<SlotEntity> slotEntity = slotRepository.findById(id);
+        return slotEntity.isPresent() ? slotEntity.get() : null;
     }
 
     public void addVipUser(SlotEntity slotEntity, UserEntity userEntity) {
@@ -41,7 +41,8 @@ public class SlotService {
     }
 
     public SlotEntity findFirstByUserId(Long id) {
-        return slotRepository.findFirstByUserId(id).get();
+        Optional<SlotEntity> slotEntity = slotRepository.findFirstByUserId(id);
+        return slotEntity.isPresent() ? slotEntity.get() : null;
     }
 
 }
