@@ -35,12 +35,18 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public UserEntity addForgetToken(UserEntity userEntity){
+    public UserEntity addForgetToken(UserEntity userEntity) {
         String token = Helper.getRandomNumberString();
         userEntity.setForgetToken(token);
         userEntity.setTokenCreationDate(LocalDateTime.now());
         userRepository.save(userEntity);
         return userEntity;
+    }
+
+    public void removeForgetToken(UserEntity userEntity) {
+        userEntity.setForgetToken(null);
+        userEntity.setTokenCreationDate(null);
+        userRepository.save(userEntity);
     }
 
     public void removeUser(Long id) {
@@ -63,6 +69,7 @@ public class UserService {
 
         return userEntity;
     }
+
     public UserEntity userByEmail(String email) {
         return getUserValue(userRepository.findByEmail(email));
     }
@@ -76,7 +83,7 @@ public class UserService {
         return userResponse;
     }
 
-    private UserEntity getUserValue(Optional<UserEntity> userEntity){
+    private UserEntity getUserValue(Optional<UserEntity> userEntity) {
         return userEntity.isPresent() ? userEntity.get() : null;
     }
 

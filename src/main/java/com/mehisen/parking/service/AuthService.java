@@ -33,6 +33,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +59,10 @@ public class AuthService {
     final private JwtUtils jwtUtils;
     final private JavaMailSender javaMailSender;
 
-    @Value("${spring.mail.username}") private String sender;
+    @Value("${spring.mail.username}")
+    private String sender;
+    @Value("${parking.app.forgetExpirationMin}")
+    private Long EXPIRE_TOKEN_AFTER_MINUTES;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
 
@@ -129,7 +134,7 @@ public class AuthService {
         return userRepository.existsByEmail(email);
     }
 
-    public String sendForgetEmail(UserEntity userEntity)
+    public void sendForgetEmail(UserEntity userEntity)
     {
 
         // Try block to check for exceptions
@@ -148,12 +153,23 @@ public class AuthService {
 
             // Sending the mail
             javaMailSender.send(message);
-            return "Mail Sent Successfully...";
         }
 
         // Catch block to handle the exceptions
         catch (Exception e) {
-            return "Error while Sending Mail";
+            log.error(e.toString());
         }
+    }
+
+    public boolean checkForgetToken(UserEntity userEntity) {
+        LocalDateTime now = LocalDateTime.now();
+        Duration diff = Duration.between(userEntity.getTokenCreationDate(), now);
+
+        return diff.toMinutes() >= EXPIRE_TOKEN_AFTER_MINUTES;
+    }
+
+    public UserEntity updatePassword(UserEntity userEntity,String newPassword) {
+        userEntity.setPassword(encoder.encode(newPassword));
+        return  userEntity;
     }
 }

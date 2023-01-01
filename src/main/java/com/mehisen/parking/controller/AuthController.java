@@ -13,6 +13,7 @@ import com.mehisen.parking.entity.UserEntity;
 import com.mehisen.parking.payload.request.ForgetRequest;
 import com.mehisen.parking.payload.request.LoginRequest;
 import com.mehisen.parking.payload.request.SignupRequest;
+import com.mehisen.parking.payload.request.UpdatePasswordRequest;
 import com.mehisen.parking.payload.resposne.JwtResponse;
 import com.mehisen.parking.payload.resposne.MessageResponse;
 import com.mehisen.parking.payload.resposne.UserResponse;
@@ -104,6 +105,31 @@ public class AuthController {
             authService.sendForgetEmail(userEntity);
 
             return ResponseEntity.ok(new MessageResponse("Forget email send successfully"));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(400).body("Error when forget password");
+        }
+    }
+
+    @PostMapping("/updatePassword")
+    public ResponseEntity<?> updatePassword(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest) {
+        try {
+            UserEntity userEntity = userService.userByEmail(updatePasswordRequest.getEmail());
+            if (userEntity == null) {
+                return ResponseEntity.status(400).body("Error email not found");
+            }
+            if (userEntity.getForgetToken() == null || !userEntity.getForgetToken().equals(updatePasswordRequest.getCode())) {
+                return ResponseEntity.status(400).body("Error forget code is wrong");
+            }
+
+            if (authService.checkForgetToken(userEntity)) {
+                return ResponseEntity.status(400).body("Error forget code was expired");
+            }
+
+            UserEntity updateUser = authService.updatePassword(userEntity, updatePasswordRequest.getNewPassword());
+            userService.removeForgetToken(updateUser);
+
+            return ResponseEntity.ok(new MessageResponse("Password Updated Successfully"));
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.status(400).body("Error when forget password");
