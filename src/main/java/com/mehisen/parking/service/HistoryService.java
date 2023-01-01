@@ -7,7 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,5 +30,10 @@ public class HistoryService {
         historyEntity.setLeaveDateTime(new Date());
 
         historyRepository.save(historyEntity);
+    }
+
+    public List<HistoryEntity> getTodayReservation() {
+        LocalDateTime startOfDay = LocalDateTime.now().with(LocalTime.MIN);
+        return historyRepository.findAllByCreationDateTimeAfter(Date.from(startOfDay.atZone(ZoneId.systemDefault()).toInstant()));
     }
 }
