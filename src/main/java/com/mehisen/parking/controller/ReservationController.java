@@ -101,11 +101,13 @@ public class ReservationController {
             }
 
             ReservationEntity reservationEntity = reservationService.checkIfFoundReservationByUser(userEntity);
-
+            if (reservationEntity == null) {
+                return ResponseEntity.ok(false);
+            }
             return ResponseEntity.ok(getReservationResponse(reservationEntity));
         } catch (Exception e) {
             log.error(e.getMessage());
-            return ResponseEntity.status(400).body("Error when check is user has slot");
+            return ResponseEntity.status(400).body("Error when check is user has reservation");
         }
     }
 
@@ -122,8 +124,38 @@ public class ReservationController {
         }
     }
 
-    private ReservationResponse getReservationResponse(ReservationEntity reservationEntity){
-        return new ReservationResponse(reservationEntity.getId(),reservationEntity.getUser().getId(),reservationEntity.getSlot().getId(),reservationEntity.getCreationDateTime());
+    @PostMapping("/checkinVIP/{id}")
+    @PreAuthorize("hasRole('USER') OR hasRole('ADMIN')")
+    public ResponseEntity<?> checkinVIP(@PathVariable Long id) {
+        try {
+            UserEntity userEntity = userService.userInfo(id);
+
+            if (userEntity == null) {
+                return ResponseEntity.status(400).body("Error user not found");
+            }
+            if (!userEntity.getIsVip() || userEntity.getSlot() == null) {
+                return ResponseEntity.status(400).body("Error user not VIP");
+            }
+
+            ReservationEntity reservationEntity = reservationService.checkIfFoundAnyReservationForUserOrSlot(userEntity, userEntity.getSlot());
+
+            if (reservationEntity != null) {
+                if (Objects.equals(reservationEntity.getUser().getId(), userEntity.getId()))
+                    return ResponseEntity.status(400).body("Error user already checked-in");
+                else
+                    return ResponseEntity.status(400).body("Error slot already checked-in");
+            }
+
+            ReservationEntity newReservationEntity = reservationService.checkin(userEntity, userEntity.getSlot());
+            return ResponseEntity.ok(getReservationResponse(newReservationEntity));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(400).body("Error when checkin");
+        }
+    }
+
+    private ReservationResponse getReservationResponse(ReservationEntity reservationEntity) {
+        return new ReservationResponse(reservationEntity.getId(), reservationEntity.getUser().getId(), reservationEntity.getSlot().getId(), reservationEntity.getCreationDateTime());
     }
 
 
